@@ -4,6 +4,8 @@ mod components;
 mod physics;
 mod renderer;
 
+use std::env;
+
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -25,7 +27,9 @@ fn main() -> Result<(), String> {
     let box_padding = 2; // pixels
 
     // For high DPI displays
-    let window_scale = 2;
+    let window_scale = env::var("DISPLAY_SCALE")
+        .map(|scale| scale.parse().expect("unable to parse DISPLAY_SCALE"))
+        .unwrap_or(2);
 
     let total_box_size = box_size + box_padding * 2;
     let logical_width = cols * total_box_size;
