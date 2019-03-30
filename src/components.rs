@@ -16,7 +16,9 @@ pub struct Velocity(pub Point);
 /// Signifies that a rectangle should be drawn centered around this entity's Position
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct ColoredRect {
+pub struct Block {
+    /// The numeric value shown on the block
+    pub value: usize,
     /// The color of the rectangle to draw
     pub color: Color,
     /// The width of the rectangle

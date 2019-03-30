@@ -6,6 +6,7 @@ mod renderer;
 
 use std::env;
 
+use sdl2::ttf;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -26,6 +27,9 @@ fn main() -> Result<(), String> {
     let box_size = 26; // pixels
     let box_padding = 2; // pixels
 
+    // The maximum value of any given block
+    let max_value = 300;
+
     // For high DPI displays
     let window_scale = env::var("DISPLAY_SCALE")
         .map(|scale| scale.parse().expect("unable to parse DISPLAY_SCALE"))
@@ -37,6 +41,7 @@ fn main() -> Result<(), String> {
 
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
+    let ttf_context = ttf::init().map_err(|e| e.to_string())?;
 
     let window = video_subsystem.window(
         "Balls Game",
@@ -47,6 +52,20 @@ fn main() -> Result<(), String> {
     let mut canvas = window.into_canvas().build()
         .expect("could not make a canvas");
     canvas.set_logical_size(logical_width, logical_height).expect("unable to set logical size");
+
+    let texture_creator = canvas.texture_creator();
+    let font = ttf_context.load_font("fonts/Roboto_Mono/RobotoMono-Regular.ttf", 12)?;
+
+    let mut number_textures = Vec::new();
+    number_textures.reserve_exact(max_value);
+
+    for i in 0..max_value {
+        let surface = font.render(&format!("{}", i))
+            .blended(Color::RGBA(255, 255, 255, 255)).map_err(|e| e.to_string())?;
+        let texture = texture_creator.create_texture_from_surface(&surface)
+            .map_err(|e| e.to_string())?;
+        number_textures.push(texture);
+    }
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(physics::Physics, "Physics", &[])
@@ -68,7 +87,8 @@ fn main() -> Result<(), String> {
 
             world.create_entity()
                 .with(Position(center))
-                .with(ColoredRect {
+                .with(Block {
+                    value: 32,
                     color: Color {
                         r: 255,
                         g: 32,
@@ -100,7 +120,7 @@ fn main() -> Result<(), String> {
         world.maintain();
 
         // Render
-        renderer::render(&mut canvas, world.system_data())?;
+        renderer::render(&mut canvas, &number_textures, world.system_data())?;
 
         // Time management!
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 20));

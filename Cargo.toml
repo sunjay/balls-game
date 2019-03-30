@@ -5,6 +5,10 @@ authors = ["Sunjay Varma <varma.sunjay@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-sdl2 = "0.32"
 specs = "0.14"
 specs-derive = "0.4"
+
+[dependencies.sdl2]
+version = "0.32"
+default-features = false
+features = ["ttf"]
