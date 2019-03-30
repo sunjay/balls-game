@@ -1,9 +1,13 @@
+#![deny(unused_must_use)]
+
 mod components;
 mod physics;
 mod renderer;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::pixels::Color;
+use sdl2::rect::Point;
 use specs::prelude::*;
 
 use std::time::Duration;
@@ -11,16 +15,34 @@ use std::time::Duration;
 use crate::components::*;
 
 fn main() -> Result<(), String> {
+    let rows = 16;
+    let cols = 12;
+
+    let box_rows = 5;
+    let box_cols = 12;
+    let empty_top_box_rows = 2;
+    let box_size = 26; // pixels
+    let box_padding = 2; // pixels
+
+    // For high DPI displays
+    let window_scale = 2;
+
+    let total_box_size = box_size + box_padding * 2;
+    let logical_width = cols * total_box_size;
+    let logical_height = rows * total_box_size;
+
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
-    let window = video_subsystem.window("game tutorial", 800, 600)
-        .position_centered()
-        .build()
-        .expect("could not initialize video subsystem");
+    let window = video_subsystem.window(
+        "Balls Game",
+        window_scale * logical_width,
+        window_scale * logical_height,
+    ).position_centered().build().expect("could not initialize video subsystem");
 
     let mut canvas = window.into_canvas().build()
         .expect("could not make a canvas");
+    canvas.set_logical_size(logical_width, logical_height).expect("unable to set logical size");
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(physics::Physics, "Physics", &[])
@@ -30,8 +52,33 @@ fn main() -> Result<(), String> {
     dispatcher.setup(&mut world.res);
     renderer::SystemData::setup(&mut world.res);
 
+    for i in 0..box_rows {
+        for j in 0..box_cols {
+            let x_offset = j * total_box_size;
+            let y_offset = (empty_top_box_rows + i) * total_box_size;
+
+            let center = Point::new(
+                (x_offset + total_box_size / 2) as i32 - logical_width as i32 / 2,
+                (y_offset + total_box_size / 2) as i32 - logical_height as i32 / 2,
+            );
+
+            world.create_entity()
+                .with(Position(center))
+                .with(ColoredRect {
+                    color: Color {
+                        r: 255,
+                        g: 32,
+                        b: 32,
+                        a: 255,
+                    },
+                    width: box_size,
+                    height: box_size,
+                })
+                .build();
+        }
+    }
+
     let mut event_pump = sdl_context.event_pump()?;
-    let mut i = 0;
     'running: loop {
         // Handle events
         for event in event_pump.poll_iter() {
@@ -45,7 +92,6 @@ fn main() -> Result<(), String> {
         }
 
         // Update
-        i = (i + 1) % 255;
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 

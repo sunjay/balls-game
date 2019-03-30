@@ -18,7 +18,7 @@ pub fn render(
     canvas.set_draw_color(Color { r: 117, g: 117, b: 117 , a: 1 });
     canvas.clear();
 
-    let (width, height) = canvas.output_size()?;
+    let (width, height) = canvas.logical_size();
 
     for (&Position(pos), colored_rect) in (&positions, &sprites).join() {
         // Treat the center of the screen as the (0, 0) coordinate
