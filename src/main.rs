@@ -88,7 +88,7 @@ fn main() -> Result<(), String> {
             world.create_entity()
                 .with(Position(center))
                 .with(Block {
-                    value: 120,
+                    value: 32,
                     color: Color {
                         r: 255,
                         g: 32,

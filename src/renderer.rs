@@ -32,14 +32,10 @@ pub fn render(
         canvas.fill_rect(rect_area)?;
 
         let number = &number_textures[block.value];
-        let texture_info = number.query();
-        // keep the aspect ratio of the text (assuming height >= width)
-        let number_height = block.height - TEXT_PADDING;
-        let number_width = number_height * texture_info.width / texture_info.height;
         canvas.copy(&number, None, Rect::from_center(
             screen_position,
-            number_width,
-            number_height,
+            block.width - TEXT_PADDING,
+            block.height - TEXT_PADDING,
         ))?;
     }
 
