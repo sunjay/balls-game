@@ -14,7 +14,7 @@ pub struct Position(pub Point);
 pub struct Velocity(pub Point);
 
 /// Signifies that a rectangle should be drawn centered around this entity's Position
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct Block {
     /// The numeric value shown on the block
@@ -25,4 +25,14 @@ pub struct Block {
     pub width: u32,
     /// The height of the rectangle
     pub height: u32,
+}
+
+/// Signifies that a rectangle should be drawn centered around this entity's Position
+#[derive(Component, Debug, Clone)]
+#[storage(HashMapStorage)]
+pub struct Ball {
+    /// The radius of the ball
+    pub radius: u32,
+    /// The color of the ball
+    pub color: Color,
 }

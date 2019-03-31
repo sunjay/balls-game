@@ -12,12 +12,13 @@ const TEXT_VERT_PADDING: u32 = 3; // pixels
 pub type SystemData<'a> = (
     ReadStorage<'a, Position>,
     ReadStorage<'a, Block>,
+    ReadStorage<'a, Ball>,
 );
 
 pub fn render(
     canvas: &mut WindowCanvas,
     number_textures: &[Texture],
-    (positions, sprites): SystemData,
+    (positions, sprites, balls): SystemData,
 ) -> Result<(), String> {
     canvas.set_draw_color(Color {r: 97, g: 97, b: 97, a: 255});
     canvas.clear();
@@ -55,6 +56,16 @@ pub fn render(
         let text_height = texture_info.height * scale / p;
 
         canvas.copy(&number, None, Rect::from_center(screen_position, text_width, text_height))?;
+    }
+
+    for (&Position(pos), &Ball {radius, color}) in (&positions, &balls).join() {
+        // Treat the center of the screen as the (0, 0) coordinate
+        let screen_position = pos + Point::new(width as i32 / 2, height as i32 / 2);
+
+        let diameter = radius * 2;
+        let rect_area = Rect::from_center(screen_position, diameter, diameter);
+        canvas.set_draw_color(color);
+        canvas.fill_rect(rect_area)?;
     }
 
     canvas.present();

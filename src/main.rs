@@ -105,6 +105,11 @@ fn main() -> Result<(), String> {
     dispatcher.setup(&mut world.res);
     renderer::SystemData::setup(&mut world.res);
 
+    world.create_entity()
+        .with(Position(Point::new(0, logical_height as i32 / 2 - 10)))
+        .with(Ball {radius: 3, color: Color {r: 255, g: 255, b: 255, a: 255}})
+        .build();
+
     for (i, level_row) in LEVEL.into_iter().enumerate() {
         for (j, &value) in level_row.into_iter().enumerate() {
             if value == 0 {
