@@ -17,18 +17,48 @@ use std::time::Duration;
 
 use crate::components::*;
 
-fn main() -> Result<(), String> {
-    let rows = 16;
-    let cols = 12;
+static LEVEL: &[&[usize]] = &[
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 32, 64, 00, 00, 00, 00, 00, 00, 64, 32, 00],
+    &[64, 32, 32, 32, 21, 32, 32, 32, 75, 32, 32, 64],
+    &[64, 32, 32, 32, 21, 32, 32, 75, 88, 32, 32, 64],
+    &[64, 32, 32, 32, 32, 42, 82, 32, 88, 32, 32, 64],
+    &[64, 32, 32, 88, 32, 82, 42, 32, 32, 32, 32, 64],
+    &[64, 32, 32, 88, 75, 32, 32, 21, 32, 32, 32, 64],
+    &[00, 32, 32, 75, 32, 32, 32, 21, 32, 32, 32, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+    &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
+];
 
-    let box_rows = 5;
-    let box_cols = 12;
-    let empty_top_box_rows = 2;
+fn value_color(value: usize) -> Color {
+    match value {
+        0..=21 => Color {r: 38, g: 166, b: 154, a: 255},
+        22..=35 => Color {r: 33, g: 150, b: 243, a: 255},
+        36..=52 => Color {r: 102, g: 187, b: 106, a: 255},
+        53..=65 => Color {r: 255, g: 152, b: 0, a: 255},
+        66..=78 => Color {r: 126, g: 87, b: 194, a: 255},
+        79..=91 => Color {r: 77, g: 208, b: 225, a: 255},
+        92..=102 => Color {r: 92, g: 107, b: 192, a: 255},
+        _ => Color {r: 158, g: 158, b: 158, a: 255},
+    }
+}
+
+fn main() -> Result<(), String> {
     let box_size = 26; // pixels
-    let box_padding = 2; // pixels
+    let box_padding = 1; // pixels
 
     // The maximum value of any given block
     let max_value = 500;
+
+    // Measure the level so we can size the window
+    let rows = LEVEL.len() as u32;
+    let cols = LEVEL[0].len() as u32;
 
     // For high DPI displays
     let window_scale = env::var("DISPLAY_SCALE")
@@ -75,10 +105,14 @@ fn main() -> Result<(), String> {
     dispatcher.setup(&mut world.res);
     renderer::SystemData::setup(&mut world.res);
 
-    for i in 0..box_rows {
-        for j in 0..box_cols {
-            let x_offset = j * total_box_size;
-            let y_offset = (empty_top_box_rows + i) * total_box_size;
+    for (i, level_row) in LEVEL.into_iter().enumerate() {
+        for (j, &value) in level_row.into_iter().enumerate() {
+            if value == 0 {
+                continue;
+            }
+
+            let x_offset = j as u32 * total_box_size;
+            let y_offset = i as u32 * total_box_size;
 
             let center = Point::new(
                 (x_offset + total_box_size / 2) as i32 - logical_width as i32 / 2,
@@ -88,13 +122,8 @@ fn main() -> Result<(), String> {
             world.create_entity()
                 .with(Position(center))
                 .with(Block {
-                    value: 333,
-                    color: Color {
-                        r: 255,
-                        g: 32,
-                        b: 32,
-                        a: 255,
-                    },
+                    value,
+                    color: value_color(value),
                     width: box_size,
                     height: box_size,
                 })

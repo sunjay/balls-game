@@ -19,7 +19,7 @@ pub fn render(
     number_textures: &[Texture],
     (positions, sprites): SystemData,
 ) -> Result<(), String> {
-    canvas.set_draw_color(Color { r: 117, g: 117, b: 117 , a: 1 });
+    canvas.set_draw_color(Color {r: 97, g: 97, b: 97, a: 255});
     canvas.clear();
 
     let (width, height) = canvas.logical_size();
