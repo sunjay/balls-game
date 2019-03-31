@@ -5,8 +5,8 @@ use sdl2::render::{WindowCanvas, Texture};
 
 use crate::components::*;
 
-const TEXT_HORI_PADDING: u32 = 2; // pixels
-const TEXT_VERT_PADDING: u32 = 4; // pixels
+const TEXT_HORI_PADDING: u32 = 1; // pixels
+const TEXT_VERT_PADDING: u32 = 3; // pixels
 
 // Type alias for the data needed by the renderer
 pub type SystemData<'a> = (
@@ -34,16 +34,25 @@ pub fn render(
 
         let number = &number_textures[block.value];
         let texture_info = number.query();
-        // Preserve aspect ratio of text while keeping it in bounds
-        let (text_width, text_height) = if texture_info.width >= texture_info.height {
-            let text_height = block.height - TEXT_VERT_PADDING * 2;
-            let text_width = text_height * texture_info.width / texture_info.height;
-            (text_width, text_height)
-        } else {
-            let text_width = block.width - TEXT_HORI_PADDING * 2;
-            let text_height = text_width * texture_info.height / texture_info.width;
-            (text_width, text_height)
-        };
+        // Want to preserve aspect ratio of text while keeping it in bounds
+        // https://stackoverflow.com/a/1106367/551904
+        let max_num_width = block.height - TEXT_VERT_PADDING * 2;
+        let max_num_height = block.width - TEXT_HORI_PADDING * 2;
+
+        // We aren't using floating point, so we multiply by this extra number p to avoid
+        // truncating down to zero or one. The larger the p, the more accurate this calculation.
+        // Too large risks wrapping during the multiplciation.
+        // Taking advantage of the fact that x * p / p ~= x
+        let p = 1000;
+
+        // Find out what scale factor we would have to use to get up to the max width and max
+        // height and then scale by the lower of those factors to get within the box.
+        let width_scale = max_num_width * p / texture_info.width;
+        let height_scale = max_num_height * p / texture_info.height;
+        let scale = width_scale.min(height_scale);
+
+        let text_width = texture_info.width * scale / p;
+        let text_height = texture_info.height * scale / p;
 
         canvas.copy(&number, None, Rect::from_center(screen_position, text_width, text_height))?;
     }

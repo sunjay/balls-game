@@ -28,7 +28,7 @@ fn main() -> Result<(), String> {
     let box_padding = 2; // pixels
 
     // The maximum value of any given block
-    let max_value = 300;
+    let max_value = 500;
 
     // For high DPI displays
     let window_scale = env::var("DISPLAY_SCALE")
@@ -59,7 +59,7 @@ fn main() -> Result<(), String> {
     let mut number_textures = Vec::new();
     number_textures.reserve_exact(max_value);
 
-    for i in 0..max_value {
+    for i in 0..=max_value {
         let surface = font.render(&format!("{}", i))
             .blended(Color::RGBA(255, 255, 255, 255)).map_err(|e| e.to_string())?;
         let texture = texture_creator.create_texture_from_surface(&surface)
@@ -88,7 +88,7 @@ fn main() -> Result<(), String> {
             world.create_entity()
                 .with(Position(center))
                 .with(Block {
-                    value: 222,
+                    value: 333,
                     color: Color {
                         r: 255,
                         g: 32,
