@@ -9,9 +9,14 @@ use sdl2::pixels::Color;
 pub struct Position(pub Point);
 
 /// The current speed and direction of a given entity
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
-pub struct Velocity(pub Point);
+pub struct Velocity {
+    /// The speed of the ball
+    pub speed: i32,
+    /// The angle of the ball in radians
+    pub angle: f64,
+}
 
 /// Signifies that a rectangle should be drawn centered around this entity's Position
 #[derive(Component, Debug, Clone)]
@@ -29,7 +34,7 @@ pub struct Block {
 
 /// Signifies that a rectangle should be drawn centered around this entity's Position
 #[derive(Component, Debug, Clone)]
-#[storage(HashMapStorage)]
+#[storage(VecStorage)]
 pub struct Ball {
     /// The radius of the ball
     pub radius: u32,

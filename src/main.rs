@@ -17,6 +17,12 @@ use std::time::Duration;
 
 use crate::components::*;
 
+#[derive(Debug, Clone)]
+enum GameState {
+    SelectDiration,
+    Simulate {initial_angle: f64},
+}
+
 static LEVEL: &[&[usize]] = &[
     &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
     &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
@@ -52,6 +58,9 @@ fn value_color(value: usize) -> Color {
 fn main() -> Result<(), String> {
     let box_size = 26; // pixels
     let box_padding = 1; // pixels
+
+    let balls = 50;
+    let ball_radius = 3;
 
     // The maximum value of any given block
     let max_value = 500;
@@ -105,10 +114,16 @@ fn main() -> Result<(), String> {
     dispatcher.setup(&mut world.res);
     renderer::SystemData::setup(&mut world.res);
 
-    world.create_entity()
-        .with(Position(Point::new(0, logical_height as i32 / 2 - 10)))
-        .with(Ball {radius: 3, color: Color {r: 255, g: 255, b: 255, a: 255}})
-        .build();
+    for _ in 0..balls {
+        world.create_entity()
+            .with(Position(Point::new(0, logical_height as i32 / 2 - ball_radius as i32)))
+            .with(Velocity {angle: 1.0*std::f64::consts::PI/3.0, speed: 2})
+            .with(Ball {
+                radius: ball_radius,
+                color: Color {r: 255, g: 255, b: 255, a: 255},
+            })
+            .build();
+    }
 
     for (i, level_row) in LEVEL.into_iter().enumerate() {
         for (j, &value) in level_row.into_iter().enumerate() {
@@ -157,7 +172,7 @@ fn main() -> Result<(), String> {
         renderer::render(&mut canvas, &number_textures, world.system_data())?;
 
         // Time management!
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 20));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     Ok(())
