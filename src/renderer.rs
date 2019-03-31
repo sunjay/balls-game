@@ -5,7 +5,8 @@ use sdl2::render::{WindowCanvas, Texture};
 
 use crate::components::*;
 
-const TEXT_PADDING: u32 = 2; // pixels
+const TEXT_HORI_PADDING: u32 = 2; // pixels
+const TEXT_VERT_PADDING: u32 = 4; // pixels
 
 // Type alias for the data needed by the renderer
 pub type SystemData<'a> = (
@@ -32,11 +33,19 @@ pub fn render(
         canvas.fill_rect(rect_area)?;
 
         let number = &number_textures[block.value];
-        canvas.copy(&number, None, Rect::from_center(
-            screen_position,
-            block.width - TEXT_PADDING,
-            block.height - TEXT_PADDING,
-        ))?;
+        let texture_info = number.query();
+        // Preserve aspect ratio of text while keeping it in bounds
+        let (text_width, text_height) = if texture_info.width >= texture_info.height {
+            let text_height = block.height - TEXT_VERT_PADDING * 2;
+            let text_width = text_height * texture_info.width / texture_info.height;
+            (text_width, text_height)
+        } else {
+            let text_width = block.width - TEXT_HORI_PADDING * 2;
+            let text_height = text_width * texture_info.height / texture_info.width;
+            (text_width, text_height)
+        };
+
+        canvas.copy(&number, None, Rect::from_center(screen_position, text_width, text_height))?;
     }
 
     canvas.present();

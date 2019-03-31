@@ -54,7 +54,7 @@ fn main() -> Result<(), String> {
     canvas.set_logical_size(logical_width, logical_height).expect("unable to set logical size");
 
     let texture_creator = canvas.texture_creator();
-    let font = ttf_context.load_font("fonts/Roboto_Mono/RobotoMono-Regular.ttf", 12)?;
+    let font = ttf_context.load_font("fonts/Roboto_Mono/RobotoMono-Regular.ttf", 40)?;
 
     let mut number_textures = Vec::new();
     number_textures.reserve_exact(max_value);
@@ -88,7 +88,7 @@ fn main() -> Result<(), String> {
             world.create_entity()
                 .with(Position(center))
                 .with(Block {
-                    value: 32,
+                    value: 222,
                     color: Color {
                         r: 255,
                         g: 32,
