@@ -6,7 +6,7 @@ use sdl2::render::{WindowCanvas, Texture};
 use crate::components::*;
 
 const TEXT_HORI_PADDING: u32 = 1; // pixels
-const TEXT_VERT_PADDING: u32 = 3; // pixels
+const TEXT_VERT_PADDING: u32 = 4; // pixels
 
 // Type alias for the data needed by the renderer
 pub type SystemData<'a> = (
@@ -37,8 +37,8 @@ pub fn render(
         let texture_info = number.query();
         // Want to preserve aspect ratio of text while keeping it in bounds
         // https://stackoverflow.com/a/1106367/551904
-        let max_num_width = block.height - TEXT_VERT_PADDING * 2;
-        let max_num_height = block.width - TEXT_HORI_PADDING * 2;
+        let max_num_width = block.width - TEXT_HORI_PADDING * 2;
+        let max_num_height = block.height - TEXT_VERT_PADDING * 2;
 
         // We aren't using floating point, so we multiply by this extra number p to avoid
         // truncating down to zero or one. The larger the p, the more accurate this calculation.
