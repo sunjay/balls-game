@@ -32,7 +32,7 @@ pub struct Block {
     pub height: u32,
 }
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BallState {
     /// Ball hasn't been launched yet
     Unlaunched,

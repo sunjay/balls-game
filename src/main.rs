@@ -3,7 +3,7 @@
 mod components;
 mod resources;
 mod physics;
-mod direction_select;
+mod ball_launcher;
 mod renderer;
 
 use std::env;
@@ -106,8 +106,8 @@ fn main() -> Result<(), String> {
     }
 
     let mut dispatcher = DispatcherBuilder::new()
-        .with(direction_select::DirectionSelect, "DirectionSelect", &[])
-        .with(physics::Physics, "Physics", &["DirectionSelect"])
+        .with(ball_launcher::BallLauncher, "BallLauncher", &[])
+        .with(physics::Physics, "Physics", &["BallLauncher"])
         .build();
 
     let mut world = World::new();

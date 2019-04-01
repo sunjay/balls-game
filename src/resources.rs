@@ -3,7 +3,10 @@ use vek::Vec2;
 #[derive(Debug, Clone)]
 pub enum GameState {
     SelectDirection,
-    Simulate {initial_angle: f64},
+    Simulate {
+        /// The initial angle at which to launch each ball
+        initial_angle: f64,
+    },
 }
 
 #[derive(Debug, Default, Clone)]
