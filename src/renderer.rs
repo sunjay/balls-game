@@ -26,6 +26,7 @@ pub fn render(
     let (width, height) = canvas.logical_size();
 
     for (&Position(pos), block) in (&positions, &sprites).join() {
+        let pos = Point::new(pos.x as i32, pos.y as i32);
         // Treat the center of the screen as the (0, 0) coordinate
         let screen_position = pos + Point::new(width as i32 / 2, height as i32 / 2);
 
@@ -58,7 +59,8 @@ pub fn render(
         canvas.copy(&number, None, Rect::from_center(screen_position, text_width, text_height))?;
     }
 
-    for (&Position(pos), &Ball {radius, color}) in (&positions, &balls).join() {
+    for (&Position(pos), &Ball {radius, color, ..}) in (&positions, &balls).join() {
+        let pos = Point::new(pos.x as i32, pos.y as i32);
         // Treat the center of the screen as the (0, 0) coordinate
         let screen_position = pos + Point::new(width as i32 / 2, height as i32 / 2);
 

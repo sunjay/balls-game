@@ -1,19 +1,19 @@
 use specs::prelude::*;
 use specs_derive::Component;
-use sdl2::rect::Point;
 use sdl2::pixels::Color;
+use vek::Vec2;
 
 /// The current position of a given entity
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Position(pub Point);
+pub struct Position(pub Vec2<f64>);
 
 /// The current speed and direction of a given entity
 #[derive(Component, Debug, Default)]
 #[storage(VecStorage)]
 pub struct Velocity {
     /// The speed of the ball
-    pub speed: i32,
+    pub speed: f64,
     /// The angle of the ball in radians
     pub angle: f64,
 }
@@ -32,6 +32,16 @@ pub struct Block {
     pub height: u32,
 }
 
+#[derive(Component, Debug, Clone, Copy)]
+pub enum BallState {
+    /// Ball hasn't been launched yet
+    Unlaunched,
+    /// Ball is being simulated
+    Moving,
+    /// Ball is stopped
+    Stopped,
+}
+
 /// Signifies that a rectangle should be drawn centered around this entity's Position
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
@@ -40,4 +50,6 @@ pub struct Ball {
     pub radius: u32,
     /// The color of the ball
     pub color: Color,
+    /// The current state of this ball
+    pub state: BallState,
 }

@@ -1,27 +1,26 @@
 #![deny(unused_must_use)]
 
 mod components;
+mod resources;
 mod physics;
+mod direction_select;
 mod renderer;
 
 use std::env;
+use std::thread;
 
 use sdl2::ttf;
 use sdl2::event::Event;
+use sdl2::mouse::MouseButton;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::Point;
 use specs::prelude::*;
+use vek::Vec2;
 
 use std::time::Duration;
 
 use crate::components::*;
-
-#[derive(Debug, Clone)]
-enum GameState {
-    SelectDiration,
-    Simulate {initial_angle: f64},
-}
+use crate::resources::*;
 
 static LEVEL: &[&[usize]] = &[
     &[00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00],
@@ -107,37 +106,46 @@ fn main() -> Result<(), String> {
     }
 
     let mut dispatcher = DispatcherBuilder::new()
-        .with(physics::Physics, "Physics", &[])
+        .with(direction_select::DirectionSelect, "DirectionSelect", &[])
+        .with(physics::Physics, "Physics", &["DirectionSelect"])
         .build();
 
     let mut world = World::new();
     dispatcher.setup(&mut world.res);
     renderer::SystemData::setup(&mut world.res);
 
+    // Add resources
+    world.add_resource(GameState::SelectDirection);
+    world.add_resource(InputState::default());
+    let launch_point = Vec2 {x: 0.0, y: logical_height as f64 / 2.0 - ball_radius as f64};
+    world.add_resource(LastLaunchPoint(launch_point));
+
+    // Initialize entities
     for _ in 0..balls {
         world.create_entity()
-            .with(Position(Point::new(0, logical_height as i32 / 2 - ball_radius as i32)))
-            .with(Velocity {angle: 1.0*std::f64::consts::PI/3.0, speed: 2})
+            .with(Position(launch_point))
+            .with(Velocity::default())
             .with(Ball {
                 radius: ball_radius,
                 color: Color {r: 255, g: 255, b: 255, a: 255},
+                state: BallState::Unlaunched,
             })
             .build();
     }
 
-    for (i, level_row) in LEVEL.into_iter().enumerate() {
-        for (j, &value) in level_row.into_iter().enumerate() {
+    for (i, &level_row) in (0..).zip(LEVEL) {
+        for (j, &value) in (0..).zip(level_row) {
             if value == 0 {
                 continue;
             }
 
-            let x_offset = j as u32 * total_box_size;
-            let y_offset = i as u32 * total_box_size;
+            let x_offset = (j * total_box_size) as f64;
+            let y_offset = (i * total_box_size) as f64;
 
-            let center = Point::new(
-                (x_offset + total_box_size / 2) as i32 - logical_width as i32 / 2,
-                (y_offset + total_box_size / 2) as i32 - logical_height as i32 / 2,
-            );
+            let center = Vec2 {
+                x: x_offset + total_box_size as f64 / 2.0 - logical_width as f64 / 2.0,
+                y: y_offset + total_box_size as f64 / 2.0 - logical_height as f64 / 2.0,
+            };
 
             world.create_entity()
                 .with(Position(center))
@@ -151,6 +159,7 @@ fn main() -> Result<(), String> {
         }
     }
 
+    let world_center = Vec2 {x: logical_width as f64 / 2.0, y: logical_height as f64 / 2.0};
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         // Handle events
@@ -160,6 +169,16 @@ fn main() -> Result<(), String> {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running;
                 },
+                Event::MouseMotion {x, y, ..} => {
+                    let mouse_pos = Vec2 {x: x as f64, y: y as f64} - world_center;
+                    world.write_resource::<InputState>().pos = mouse_pos;
+                },
+                Event::MouseButtonUp {mouse_btn: MouseButton::Left, clicks: 1, x, y, ..} => {
+                    let mouse_pos = Vec2 {x: x as f64, y: y as f64} - world_center;
+                    let mut input_state = world.write_resource::<InputState>();
+                    input_state.pos = mouse_pos;
+                    input_state.perform_action = true;
+                },
                 _ => {}
             }
         }
@@ -168,11 +187,14 @@ fn main() -> Result<(), String> {
         dispatcher.dispatch(&mut world.res);
         world.maintain();
 
+        // Reset after every update so we don't accidentally launch twice
+        world.write_resource::<InputState>().perform_action = false;
+
         // Render
         renderer::render(&mut canvas, &number_textures, world.system_data())?;
 
         // Time management!
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     Ok(())
