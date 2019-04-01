@@ -19,3 +19,15 @@ pub struct InputState {
 
 #[derive(Debug, Clone)]
 pub struct LastLaunchPoint(pub Vec2<f64>);
+
+#[derive(Debug, Clone)]
+pub struct GameBoundary {
+    /// The top left corner of the boundary in world coordinates
+    pub top_left: Vec2<f64>,
+    /// The top right corner of the boundary in world coordinates
+    pub top_right: Vec2<f64>,
+    /// The bottom left corner of the boundary in world coordinates
+    pub bottom_left: Vec2<f64>,
+    /// The bottom right corner of the boundary in world coordinates
+    pub bottom_right: Vec2<f64>,
+}

@@ -1,3 +1,4 @@
+use vek::Vec2;
 use specs::prelude::*;
 
 use crate::components::*;
@@ -10,9 +11,11 @@ impl<'a> System<'a> for Physics {
     fn run(&mut self, (mut positions, velocities): Self::SystemData) {
         for (Position(pos), vel) in (&mut positions, &velocities).join() {
             let speed = vel.speed as f64;
-            pos.x += vel.angle.cos() * speed;
-            // Need to flip the sign because y-axis goes down
-            pos.y -= vel.angle.sin() * speed;
+
+            // Need to flip the y-axis sign because the y-axis goes down
+            let direction = Vec2 {x: vel.angle.cos(), y: -vel.angle.sin()};
+            let next_pos = *pos + direction * speed;
+            *pos = next_pos;
         }
     }
 }

@@ -15,7 +15,7 @@ use sdl2::mouse::MouseButton;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use specs::prelude::*;
-use vek::Vec2;
+use vek::{Vec2, Vec3, Mat3};
 
 use std::time::Duration;
 
@@ -76,6 +76,8 @@ fn main() -> Result<(), String> {
     let total_box_size = box_size + box_padding * 2;
     let logical_width = cols * total_box_size;
     let logical_height = rows * total_box_size;
+    let half_width = logical_width as f64 / 2.0;
+    let half_height = logical_height as f64 / 2.0;
 
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -117,8 +119,15 @@ fn main() -> Result<(), String> {
     // Add resources
     world.add_resource(GameState::SelectDirection);
     world.add_resource(InputState::default());
-    let launch_point = Vec2 {x: 0.0, y: logical_height as f64 / 2.0 - ball_radius as f64};
+    let launch_point = Vec2 {x: 0.0, y: half_height - ball_radius as f64};
     world.add_resource(LastLaunchPoint(launch_point));
+
+    world.add_resource(GameBoundary {
+        top_left: Vec2 {x: -half_width, y: -half_height},
+        top_right: Vec2 {x: half_width, y: -half_height},
+        bottom_left: Vec2 {x: -half_width, y: half_height},
+        bottom_right: Vec2 {x: half_width, y: half_height},
+    });
 
     // Initialize entities
     for _ in 0..balls {
@@ -143,8 +152,8 @@ fn main() -> Result<(), String> {
             let y_offset = (i * total_box_size) as f64;
 
             let center = Vec2 {
-                x: x_offset + total_box_size as f64 / 2.0 - logical_width as f64 / 2.0,
-                y: y_offset + total_box_size as f64 / 2.0 - logical_height as f64 / 2.0,
+                x: x_offset + total_box_size as f64 / 2.0 - half_width,
+                y: y_offset + total_box_size as f64 / 2.0 - half_height,
             };
 
             world.create_entity()
@@ -159,7 +168,10 @@ fn main() -> Result<(), String> {
         }
     }
 
-    let world_center = Vec2 {x: logical_width as f64 / 2.0, y: logical_height as f64 / 2.0};
+    let screen_to_world: Mat3<f64> = Mat3::translation_2d(Vec2 {
+        x: -half_width,
+        y: logical_height as f64 / -2.0,
+    });
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         // Handle events
@@ -170,13 +182,18 @@ fn main() -> Result<(), String> {
                     break 'running;
                 },
                 Event::MouseMotion {x, y, ..} => {
-                    let mouse_pos = Vec2 {x: x as f64, y: y as f64} - world_center;
-                    world.write_resource::<InputState>().pos = mouse_pos;
+                    let mut input_state = world.write_resource::<InputState>();
+                    let mouse_pos: Vec3<f64> = screen_to_world * Vec3::from_point_2d(
+                        Vec2 {x: x as f64, y: y as f64}
+                    );
+                    input_state.pos = Vec2::from(mouse_pos);
                 },
                 Event::MouseButtonUp {mouse_btn: MouseButton::Left, clicks: 1, x, y, ..} => {
-                    let mouse_pos = Vec2 {x: x as f64, y: y as f64} - world_center;
                     let mut input_state = world.write_resource::<InputState>();
-                    input_state.pos = mouse_pos;
+                    let mouse_pos: Vec3<f64> = screen_to_world * Vec3::from_point_2d(
+                        Vec2 {x: x as f64, y: y as f64}
+                    );
+                    input_state.pos = Vec2::from(mouse_pos);
                     input_state.perform_action = true;
                 },
                 _ => {}

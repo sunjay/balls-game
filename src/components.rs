@@ -18,7 +18,7 @@ pub struct Velocity {
     pub angle: f64,
 }
 
-/// Signifies that a rectangle should be drawn centered around this entity's Position
+/// A collidable block centered at the entity's Position and rendered with the given color
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct Block {
@@ -32,7 +32,7 @@ pub struct Block {
     pub height: u32,
 }
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BallState {
     /// Ball hasn't been launched yet
     Unlaunched,
